@@ -57,3 +57,15 @@ class YoutubeClient(ProviderClient):
             )
             for playlist in playlists
         ]
+    
+    def create_playlist(self, name: str, songs: list[Song]) -> Playlist:
+        playlist_id = self._client.create_playlist(
+            title=name,
+            description="Created by musync",
+            video_ids=[song.id for song in songs],
+        )
+        return Playlist(
+            id=playlist_id,
+            name=name,
+            songs=songs,
+        )

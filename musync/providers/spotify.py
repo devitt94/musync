@@ -83,3 +83,20 @@ class SpotifyClient(ProviderClient):
             )
             for playlist in playlists
         ]
+    
+    def create_playlist(self, name: str, songs: list[Song]) -> Playlist:
+        playlist = self._client.user_playlist_create(
+            user=self._client.me()['id'],
+            name=name,
+        )
+        
+        self._client.playlist_add_items(
+            playlist_id=playlist['id'],
+            items=[song.id for song in songs],
+        )
+        
+        return Playlist(
+            id=playlist['id'],
+            name=playlist['name'],
+            songs=songs,
+        )

@@ -22,12 +22,19 @@ def main():
 
     print(f"Playlist: {playlist.name}")
 
+    yt_songs = []
     for song in playlist.songs:
-        print(f"  - {song.title} by {song.artist}")
 
         yt_song = youtube_client.find_song(song)
-        if yt_song is None:
-            print("    - Not found on YouTube")
+        if yt_song:
+            yt_songs.append(yt_song)
+        else:
+            print(f"    - Could not find {song.title} by {song.artist} on YouTube")
 
+    yt_playlist = youtube_client.create_playlist(f"[MUSYNC] {playlist.name}", yt_songs)
+
+    print(f"Created YouTube playlist: {yt_playlist.name}")
+
+    
 if __name__ == "__main__":
     main()

@@ -9,6 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+# Youtube Music auth
 oauth.json
 browser.json
+.cache
+
 .env

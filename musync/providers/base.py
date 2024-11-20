@@ -17,3 +17,7 @@ class ProviderClient(ABC):
     @abstractmethod
     def get_user_playlists(self) -> list[Playlist]:
         pass
+
+    @abstractmethod
+    def create_playlist(self, name: str, songs: list[Song]) -> Playlist:
+        pass
