@@ -1,4 +1,5 @@
 import dotenv
+from loguru import logger
 
 from musync.providers import SpotifyClient, YoutubeClient
 
@@ -20,27 +21,27 @@ def main() -> None:
     ]
 
     for playlist in playlists_to_sync:
-        print(f"Syncing playlist: {playlist.name} from Spotify to YouTube")
+        logger.info(f"Syncing playlist: {playlist.name} from Spotify to YouTube")
 
         playlist_to_create_name = f"{PLAYLIST_PREFIX} {playlist.name}"
 
         if youtube_client.user_playlist_exists(playlist_to_create_name):
-            print(f"YouTube playlist {playlist_to_create_name} already exists")
+            logger.info(f"YouTube playlist {playlist_to_create_name} already exists")
             continue
 
         yt_songs = []
         for song in playlist.songs:
-            print(f"Searching for {song.title} by {song.artist} on YouTube")
-
             yt_song = youtube_client.find_song(song)
             if yt_song:
                 yt_songs.append(yt_song)
             else:
-                print(f"Could not find {song.title} by {song.artist} on YouTube")
+                logger.warning(
+                    f"Could not find {song.title} by {song.artist} on YouTube"
+                )
 
         yt_playlist = youtube_client.create_playlist(playlist_to_create_name, yt_songs)
 
-        print(f"Created YouTube playlist: {yt_playlist.name}")
+        logger.info(f"Created YouTube playlist: {yt_playlist.name}")
 
 
 if __name__ == "__main__":
