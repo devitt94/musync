@@ -10,3 +10,8 @@ dependencies = [
     "spotipy>=2.24.0",
     "ytmusicapi>=1.8.2",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.7.4",
+]

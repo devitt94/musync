@@ -3,11 +3,11 @@ from typing import Self
 
 from musync.models import Song, Playlist
 
-class ProviderClient(ABC):
 
+class ProviderClient(ABC):
     @classmethod
     @abstractmethod
-    def from_env(cls):
+    def from_env(cls: Self) -> Self:
         pass
 
     @abstractmethod
@@ -20,4 +20,8 @@ class ProviderClient(ABC):
 
     @abstractmethod
     def create_playlist(self, name: str, songs: list[Song]) -> Playlist:
+        pass
+
+    @abstractmethod
+    def user_playlist_exists(self, name: str) -> bool:
         pass
