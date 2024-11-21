@@ -8,7 +8,7 @@ dotenv.load_dotenv()
 PLAYLIST_PREFIX = "[MUSYNC]"
 
 
-def main():
+def main() -> None:
     spotify_client: SpotifyClient = SpotifyClient.from_env()
 
     youtube_client: YoutubeClient = YoutubeClient.from_env()

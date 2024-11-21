@@ -5,7 +5,7 @@ from musync.models import Playlist, Song
 
 from .base import ProviderClient
 
-from ytmusicapi import YTMusic
+from ytmusicapi import YTMusic  # type: ignore
 
 
 class YoutubeClient(ProviderClient):
@@ -30,7 +30,7 @@ class YoutubeClient(ProviderClient):
             album = (
                 first_track_found["album"]["name"]
                 if "album" in first_track_found
-                else ""
+                else None
             )
             return Song(
                 id=first_track_found["videoId"],

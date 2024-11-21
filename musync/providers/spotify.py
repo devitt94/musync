@@ -1,9 +1,8 @@
 import os
-from typing import Self
 from musync.models import Song, Playlist
 from musync.providers.base import ProviderClient
 
-from spotipy import Spotify, SpotifyOAuth
+from spotipy import Spotify, SpotifyOAuth  # type: ignore
 
 
 SCOPES = [
@@ -16,7 +15,7 @@ SCOPES = [
 
 class SpotifyClient(ProviderClient):
     @classmethod
-    def from_env(cls: Self) -> Self:
+    def from_env(cls):
         return cls(
             client_id=os.getenv("SPOTIFY_CLIENT_ID"),
             client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
@@ -33,7 +32,7 @@ class SpotifyClient(ProviderClient):
             )
         )
 
-    def find_song(self, song: Song) -> Song:
+    def find_song(self, song: Song) -> Song | None:
         results = self._client.search(q=f"{song.title} {song.artist}", limit=1)
         try:
             track = results["tracks"]["items"][0]

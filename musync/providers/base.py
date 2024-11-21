@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Self
 
 from musync.models import Song, Playlist
 
@@ -7,7 +6,7 @@ from musync.models import Song, Playlist
 class ProviderClient(ABC):
     @classmethod
     @abstractmethod
-    def from_env(cls: Self) -> Self:
+    def from_env(cls):
         pass
 
     @abstractmethod
