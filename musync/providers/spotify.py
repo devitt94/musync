@@ -32,6 +32,10 @@ class SpotifyClient(ProviderClient):
             )
         )
 
+    @property
+    def provider_name(self) -> str:
+        return "Spotify"
+
     def find_song(self, song: Song) -> Song | None:
         results = self._client.search(q=f"{song.title} {song.artist}", limit=1)
         try:

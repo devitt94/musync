@@ -9,6 +9,11 @@ class ProviderClient(ABC):
     def from_env(cls):
         pass
 
+    @property
+    @abstractmethod
+    def provider_name(self) -> str:
+        pass
+
     @abstractmethod
     def find_song(self, song: Song) -> Song | None:
         pass

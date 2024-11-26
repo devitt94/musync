@@ -16,6 +16,10 @@ class YoutubeClient(ProviderClient):
     def __init__(self, auth_file: Path):
         self._client = YTMusic(str(auth_file))
 
+    @property
+    def provider_name(self) -> str:
+        return "YouTube"
+
     def find_song(self, song: Song) -> Song | None:
         search_results = self._client.search(
             query=f"{song.title} {song.artist}", filter="songs", limit=1
