@@ -72,12 +72,26 @@ class SpotifyClient(ProviderClient):
             for track in songs
         ]
 
-    def get_user_playlists(self) -> list[Playlist]:
+    def __is_self_authored_playlist(self, playlist: dict) -> bool:
+        return playlist["owner"]["id"] == self.user_id
+
+    def __get_playlists(self, is_user_authored: bool) -> list[Playlist]:
+        if is_user_authored:
+            filter_fn = self.__is_self_authored_playlist
+        else:
+
+            def filter_fn(x):
+                return not self.__is_self_authored_playlist(x)
+
         results = self._client.current_user_playlists()
+
         playlists = results["items"]
         while results["next"]:
             results = self._client.next(results)
+
             playlists.extend(results["items"])
+
+        filtered_playlists = filter(filter_fn, playlists)
 
         return [
             Playlist(
@@ -85,8 +99,11 @@ class SpotifyClient(ProviderClient):
                 name=playlist["name"],
                 songs=self.get_songs_from_playlist(playlist["id"]),
             )
-            for playlist in playlists
+            for playlist in filtered_playlists
         ]
+
+    def get_user_playlists(self) -> list[Playlist]:
+        return self.__get_playlists(is_user_authored=True)
 
     def create_playlist(self, name: str, songs: list[Song]) -> Playlist:
         playlist = self._client.user_playlist_create(
@@ -110,4 +127,4 @@ class SpotifyClient(ProviderClient):
         return any(playlist["name"] == name for playlist in playlists)
 
     def get_followed_playlists(self) -> list[Playlist]:
-        pass
+        return self.__get_playlists(is_user_authored=False)
