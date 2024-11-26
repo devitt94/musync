@@ -11,11 +11,15 @@ from ytmusicapi import YTMusic  # type: ignore
 
 class YoutubeClient(ProviderClient):
     @classmethod
-    def from_env(cls):
-        return cls(auth_file=Path(os.getenv("YOUTUBE_BROWSER_AUTH_FILEPATH")))
+    def from_env(cls, read_only: bool = False):
+        return cls(
+            auth_file=Path(os.getenv("YOUTUBE_BROWSER_AUTH_FILEPATH")),
+            read_only=read_only,
+        )
 
-    def __init__(self, auth_file: Path):
+    def __init__(self, auth_file: Path, read_only: bool = False):
         self._client = YTMusic(str(auth_file))
+        self.read_only = read_only
 
     @property
     def provider_name(self) -> str:
@@ -95,11 +99,15 @@ class YoutubeClient(ProviderClient):
         return self.__get_playlists(is_user_authored=True)
 
     def create_playlist(self, name: str, songs: list[Song]) -> Playlist:
-        playlist_id = self._client.create_playlist(
-            title=name,
-            description="Created by musync",
-            video_ids=[song.id for song in songs],
-        )
+        if not self.read_only:
+            playlist_id = self._client.create_playlist(
+                title=name,
+                description="Created by musync",
+                video_ids=[song.id for song in songs],
+            )
+        else:
+            playlist_id = "read_only_playlist"
+
         return Playlist(
             id=playlist_id,
             name=name,

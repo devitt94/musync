@@ -16,14 +16,21 @@ SCOPES = [
 
 class SpotifyClient(ProviderClient):
     @classmethod
-    def from_env(cls):
+    def from_env(cls, read_only: bool = False):
         return cls(
             client_id=os.getenv("SPOTIFY_CLIENT_ID"),
             client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
             redirect_uri=os.getenv("SPOTIFY_REDIRECT_URI"),
+            read_only=read_only,
         )
 
-    def __init__(self, client_id: str, client_secret: str, redirect_uri: str):
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        redirect_uri: str,
+        read_only: bool = False,
+    ):
         self._client = Spotify(
             auth_manager=SpotifyOAuth(
                 client_id=client_id,
@@ -32,6 +39,7 @@ class SpotifyClient(ProviderClient):
                 scope=" ".join(SCOPES),
             )
         )
+        self.read_only = read_only
 
     @property
     def provider_name(self) -> str:
@@ -106,19 +114,24 @@ class SpotifyClient(ProviderClient):
         return self.__get_playlists(is_user_authored=True)
 
     def create_playlist(self, name: str, songs: list[Song]) -> Playlist:
-        playlist = self._client.user_playlist_create(
-            user=self._client.me()["id"],
-            name=name,
-        )
+        if not self.read_only:
+            playlist = self._client.user_playlist_create(
+                user=self._client.me()["id"],
+                name=name,
+            )
 
-        self._client.playlist_add_items(
-            playlist_id=playlist["id"],
-            items=[song.id for song in songs],
-        )
+            self._client.playlist_add_items(
+                playlist_id=playlist["id"],
+                items=[song.id for song in songs],
+            )
+
+            playlist_id = playlist["id"]
+        else:
+            playlist_id = "read_only_playlist"
 
         return Playlist(
-            id=playlist["id"],
-            name=playlist["name"],
+            id=playlist_id,
+            name=name,
             songs=songs,
         )
 

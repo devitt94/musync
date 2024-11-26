@@ -6,7 +6,7 @@ from musync.models import Song, Playlist
 class ProviderClient(ABC):
     @classmethod
     @abstractmethod
-    def from_env(cls):
+    def from_env(cls, read_only: bool = False):
         pass
 
     @property
