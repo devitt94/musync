@@ -52,12 +52,20 @@ def sync_users_playlists(
         )
 
 
+def sync_followed_playlists(
+    source_client: ProviderClient,
+    destination_client: ProviderClient,
+) -> None:
+    pass
+
+
 def main() -> None:
     spotify_client: SpotifyClient = SpotifyClient.from_env()
 
     youtube_client: YoutubeClient = YoutubeClient.from_env()
 
     sync_users_playlists(spotify_client, youtube_client)
+    sync_followed_playlists(spotify_client, youtube_client)
 
 
 if __name__ == "__main__":

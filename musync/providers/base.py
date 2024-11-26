@@ -29,3 +29,7 @@ class ProviderClient(ABC):
     @abstractmethod
     def user_playlist_exists(self, name: str) -> bool:
         pass
+
+    @abstractmethod
+    def get_followed_playlists(self) -> list[Playlist]:
+        pass

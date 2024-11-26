@@ -1,3 +1,4 @@
+import functools
 import os
 from musync.models import Song, Playlist
 from musync.providers.base import ProviderClient
@@ -35,6 +36,10 @@ class SpotifyClient(ProviderClient):
     @property
     def provider_name(self) -> str:
         return "Spotify"
+
+    @functools.cached_property
+    def user_id(self) -> str:
+        return self._client.me()["id"]
 
     def find_song(self, song: Song) -> Song | None:
         results = self._client.search(q=f"{song.title} {song.artist}", limit=1)
@@ -103,3 +108,6 @@ class SpotifyClient(ProviderClient):
     def user_playlist_exists(self, name: str):
         playlists = self._client.current_user_playlists()["items"]
         return any(playlist["name"] == name for playlist in playlists)
+
+    def get_followed_playlists(self) -> list[Playlist]:
+        pass

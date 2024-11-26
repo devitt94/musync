@@ -6,8 +6,9 @@ dist/
 wheels/
 *.egg-info
 
-# Ruff generated files
+# Tool generated files
 .ruff_cache/
+.mypy_cache/
 
 # Virtual environments
 .venv
