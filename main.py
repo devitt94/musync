@@ -1,21 +1,48 @@
+from enum import Enum
 import dotenv
 from loguru import logger
+import typer
 
 from musync.models.playlist import Playlist
 from musync.providers import SpotifyClient, YoutubeClient
 from musync.providers.base import ProviderClient
 
+from typing import TypeVar
 
 dotenv.load_dotenv()
 
+app = typer.Typer()
+
 PLAYLIST_PREFIX = "[MUSYNC]"
+
+
+ProviderClientType = TypeVar("ProviderClientType", bound=ProviderClient)
+
+
+class Provider(str, Enum):
+    spotify = "spotify"
+    youtube = "youtube"
+
+
+def get_provider_client(provider: Provider, read_only: bool) -> ProviderClient:
+    clients: dict[Provider, ProviderClientType] = {
+        Provider.spotify: SpotifyClient,
+        Provider.youtube: YoutubeClient,
+    }
+
+    try:
+        return clients[provider].from_env(read_only=read_only)
+    except KeyError:
+        raise ValueError(f"Invalid provider: {provider}")
 
 
 def sync_playlists(
     source_client: ProviderClient,
     destination_client: ProviderClient,
     playlists: list[Playlist],
-) -> None:
+) -> list[Playlist]:
+    results: list[Playlist] = []
+
     for playlist in playlists:
         logger.info(
             f"Syncing playlist: {playlist.name} from {source_client.provider_name} to {destination_client.provider_name}"
@@ -45,49 +72,53 @@ def sync_playlists(
             playlist_to_create_name, yt_songs
         )
 
+        results.append(yt_playlist)
+
         logger.info(
-            f"Created {destination_client.provider_name} playlist: {yt_playlist.name}"
+            f"Created {destination_client.provider_name} playlist: {yt_playlist.name} with {len(yt_playlist.songs)} songs"
         )
+
+    return results
 
 
 def sync_users_playlists(
     source_client: ProviderClient,
     destination_client: ProviderClient,
-) -> None:
+) -> list[Playlist]:
     playlists_to_sync = [
         playlist
         for playlist in source_client.get_user_playlists()
         if not playlist.name.startswith(PLAYLIST_PREFIX)
     ]
 
-    sync_playlists(source_client, destination_client, playlists_to_sync)
+    return sync_playlists(source_client, destination_client, playlists_to_sync)
 
 
 def sync_followed_playlists(
     source_client: ProviderClient,
     destination_client: ProviderClient,
-) -> None:
+) -> list[Playlist]:
     playlists_to_sync = [
         playlist
         for playlist in source_client.get_followed_playlists()
         if not playlist.name.startswith(PLAYLIST_PREFIX)
     ]
 
-    sync_playlists(source_client, destination_client, playlists_to_sync)
+    return sync_playlists(source_client, destination_client, playlists_to_sync)
 
 
-def main() -> None:
-    read_only = True
-    spotify_client: SpotifyClient = SpotifyClient.from_env(read_only=read_only)
+@app.command()
+def unisync(
+    source: Provider = typer.Argument(..., help="The source provider"),
+    destination: Provider = typer.Argument(..., help="The destination provider"),
+    read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
+) -> None:
+    source_client = get_provider_client(source, read_only)
+    destination_client = get_provider_client(destination, read_only)
 
-    youtube_client: YoutubeClient = YoutubeClient.from_env(read_only=read_only)
-
-    sync_users_playlists(spotify_client, youtube_client)
-    sync_followed_playlists(spotify_client, youtube_client)
-
-    sync_users_playlists(youtube_client, spotify_client)
-    sync_followed_playlists(youtube_client, spotify_client)
+    sync_users_playlists(source_client, destination_client)
+    sync_followed_playlists(source_client, destination_client)
 
 
 if __name__ == "__main__":
-    main()
+    app()
