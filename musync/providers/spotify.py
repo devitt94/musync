@@ -125,10 +125,15 @@ class SpotifyClient(ProviderClient):
                 name=name,
             )
 
-            self._client.playlist_add_items(
-                playlist_id=playlist["id"],
-                items=[song.id for song in songs],
-            )
+            batch_size = 100
+            song_batches = [
+                songs[i : i + batch_size] for i in range(0, len(songs), batch_size)
+            ]
+            for batch in song_batches:
+                self._client.playlist_add_items(
+                    playlist_id=playlist["id"],
+                    items=[song.id for song in batch],
+                )
 
             playlist_id = playlist["id"]
         else:
