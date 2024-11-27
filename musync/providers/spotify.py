@@ -116,7 +116,7 @@ class SpotifyClient(ProviderClient):
     def create_playlist(self, name: str, songs: list[Song]) -> Playlist:
         if not self.read_only:
             playlist = self._client.user_playlist_create(
-                user=self._client.me()["id"],
+                user=self.user_id,
                 name=name,
             )
 

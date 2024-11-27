@@ -45,18 +45,18 @@ class YoutubeClient(ProviderClient):
             ][0]
         except IndexError:
             return None
-        else:
-            album = (
-                first_track_found["album"]["name"]
-                if "album" in first_track_found
-                else None
-            )
-            return Song(
-                id=first_track_found["videoId"],
-                title=first_track_found["title"],
-                artist=first_track_found["artists"][0]["name"],
-                album=album,
-            )
+
+        try:
+            album = first_track_found["album"]["name"]
+        except (KeyError, TypeError):
+            album = None
+
+        return Song(
+            id=first_track_found["videoId"],
+            title=first_track_found["title"],
+            artist=first_track_found["artists"][0]["name"],
+            album=album,
+        )
 
     def __is_self_authored_playlist(self, playlist: dict) -> bool:
         authors = playlist.get("author")
