@@ -22,10 +22,19 @@ SCOPES = [
 class SpotifyClient(ProviderClient):
     @classmethod
     def from_env(cls, read_only: bool = False):
+        client_id = os.getenv("SPOTIFY_CLIENT_ID")
+        client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
+        redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI")
+
+        if not client_id or not client_secret or not redirect_uri:
+            raise ValueError(
+                "SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_REDIRECT_URI environment variables must be set"
+            )
+
         return cls(
-            client_id=os.getenv("SPOTIFY_CLIENT_ID"),
-            client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
-            redirect_uri=os.getenv("SPOTIFY_REDIRECT_URI"),
+            client_id=client_id,
+            client_secret=client_secret,
+            redirect_uri=redirect_uri,
             read_only=read_only,
         )
 

@@ -12,8 +12,14 @@ from ytmusicapi import YTMusic  # type: ignore
 class YoutubeClient(ProviderClient):
     @classmethod
     def from_env(cls, read_only: bool = False):
+        filepath = os.getenv("YOUTUBE_BROWSER_AUTH_FILEPATH")
+        if not filepath:
+            raise ValueError(
+                "'YOUTUBE_BROWSER_AUTH_FILEPATH' environment variable is not set"
+            )
+
         return cls(
-            auth_file=Path(os.getenv("YOUTUBE_BROWSER_AUTH_FILEPATH")),
+            auth_file=Path(filepath),
             read_only=read_only,
         )
 
