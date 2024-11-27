@@ -9,8 +9,13 @@ from spotipy import Spotify, SpotifyOAuth  # type: ignore
 SCOPES = [
     "user-follow-read",
     "user-library-read",
+    "user-library-modify",
     "user-top-read",
     "user-read-private",
+    "playlist-read-private",
+    "playlist-modify-public",
+    "playlist-modify-private",
+    "playlist-read-collaborative",
 ]
 
 
@@ -137,7 +142,7 @@ class SpotifyClient(ProviderClient):
 
     def user_playlist_exists(self, name: str):
         playlists = self._client.current_user_playlists()["items"]
-        return any(playlist["name"] == name for playlist in playlists)
+        return any(playlist == name for playlist in playlists)
 
     def get_followed_playlists(self) -> list[Playlist]:
         return self.__get_playlists(is_user_authored=False)

@@ -1,4 +1,5 @@
 from enum import Enum
+import itertools
 import dotenv
 from loguru import logger
 import typer
@@ -63,6 +64,9 @@ def sync_playlists(
             yt_song = destination_client.find_song(song)
             if yt_song:
                 yt_songs.append(yt_song)
+                logger.debug(
+                    f"Found {song.title} by {song.artist} on {destination_client.provider_name}"
+                )
             else:
                 logger.warning(
                     f"Could not find {song.title} by {song.artist} on {destination_client.provider_name}"
@@ -85,11 +89,17 @@ def sync_users_playlists(
     source_client: ProviderClient,
     destination_client: ProviderClient,
 ) -> list[Playlist]:
+    logger.info(
+        f"Fetching user playlists from {source_client.provider_name} to sync to {destination_client.provider_name}"
+    )
+
     playlists_to_sync = [
         playlist
         for playlist in source_client.get_user_playlists()
         if not playlist.name.startswith(PLAYLIST_PREFIX)
     ]
+
+    logger.info(f"Found {len(playlists_to_sync)} playlists to sync")
 
     return sync_playlists(source_client, destination_client, playlists_to_sync)
 
@@ -118,6 +128,22 @@ def unisync(
 
     sync_users_playlists(source_client, destination_client)
     sync_followed_playlists(source_client, destination_client)
+
+
+@app.command()
+def multisync(
+    providers: list[Provider] = typer.Argument(..., help="The providers to sync"),
+    read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
+) -> None:
+    clients = [get_provider_client(provider, read_only) for provider in providers]
+
+    for source_client, destination_client in itertools.permutations(clients, 2):
+        logger.info(
+            f"Syncing {source_client.provider_name} to {destination_client.provider_name}"
+        )
+
+        sync_users_playlists(source_client, destination_client)
+        sync_followed_playlists(source_client, destination_client)
 
 
 if __name__ == "__main__":
