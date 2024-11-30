@@ -1,4 +1,5 @@
 import functools
+import itertools
 import os
 from musync.models import Song, Playlist
 from musync.providers.base import ProviderClient
@@ -134,11 +135,7 @@ class SpotifyClient(ProviderClient):
                 name=name,
             )
 
-            batch_size = 100
-            song_batches = [
-                songs[i : i + batch_size] for i in range(0, len(songs), batch_size)
-            ]
-            for batch in song_batches:
+            for batch in itertools.batched(songs, 100):
                 self._client.playlist_add_items(
                     playlist_id=playlist["id"],
                     items=[song.id for song in batch],
