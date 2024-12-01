@@ -94,3 +94,65 @@ def test_find_song(yt_client: YoutubeClient):
     assert yt_song.id == "hpSrLjc5SMs"
     assert yt_song.title == song.title
     assert yt_song.artist == song.artist
+
+
+def test_find_song_no_results(yt_client: YoutubeClient):
+    song = Song(
+        id="test_id",
+        title="Wonderwall",
+        artist="Oasis",
+    )
+
+    yt_client._client.search = MagicMock(return_value=[])
+
+    yt_song = yt_client.find_song(song)
+
+    assert yt_song is None
+
+
+def test_find_song_no_album(yt_client: YoutubeClient):
+    song = Song(
+        id="test_id",
+        title="Wonderwall",
+        artist="Oasis",
+    )
+
+    yt_client._client.search = MagicMock(
+        return_value=[
+            {
+                "category": "Songs",
+                "resultType": "song",
+                "title": "Wonderwall",
+                "album": None,
+                "inLibrary": False,
+                "feedbackTokens": {
+                    "add": "AB9zfpIWFHHT0ynIuCZQy7J29A-9bOt8wFRjelymQ73MWWBgVSe-C5N6fesBrKeKylnrJ15gka7TwM_Z9iPWkiqccb8Php-Mfg",
+                    "remove": "AB9zfpJpvggJR51HwCG8XjvcybaxLj0ntOA6h3Rmg5P7Weio3hOoQNgV8EOhfSfBedsoOFIf49hAQrpko-TWgQ1NaEq01_DmQg",
+                },
+                "videoId": "hpSrLjc5SMs",
+                "videoType": "MUSIC_VIDEO_TYPE_ATV",
+                "duration": "4:19",
+                "year": None,
+                "artists": [{"name": "Oasis", "id": "UCmMUZbaYdNH0bEd1PAlAqsA"}],
+                "duration_seconds": 259,
+                "isExplicit": False,
+                "thumbnails": [
+                    {
+                        "url": "https://lh3.googleusercontent.com/SP0cN9Mypy_WeKEajm03ERYOU_53KkHZpu4EQpSJUzcQ1H_3HhS1FmjR34KTstf-0DX83JLCCj9ouc-k1g=w60-h60-l90-rj",
+                        "width": 60,
+                        "height": 60,
+                    },
+                    {
+                        "url": "https://lh3.googleusercontent.com/SP0cN9Mypy_WeKEajm03ERYOU_53KkHZpu4EQpSJUzcQ1H_3HhS1FmjR34KTstf-0DX83JLCCj9ouc-k1g=w120-h120-l90-rj",
+                        "width": 120,
+                        "height": 120,
+                    },
+                ],
+            }
+        ]
+    )
+
+    yt_song = yt_client.find_song(song)
+
+    assert yt_song is not None
+    assert yt_song.album is None
