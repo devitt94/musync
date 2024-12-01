@@ -5,4 +5,4 @@ class Song(BaseModel):
     id: str
     title: str
     artist: str
-    album: str | None
+    album: str | None = None
