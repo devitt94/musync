@@ -146,5 +146,10 @@ def multisync(
         sync_followed_playlists(source_client, destination_client)
 
 
+@app.command()
+def hello():
+    logger.info("Musync is working!")
+
+
 if __name__ == "__main__":
     app()

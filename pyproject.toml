@@ -1,7 +1,7 @@
 [project]
 name = "musync"
 version = "0.1.0"
-description = "Add your description here"
+description = "A tool for syncing user data across music streaming services."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -12,6 +12,10 @@ dependencies = [
     "typer>=0.13.1",
     "ytmusicapi>=1.8.2",
 ]
+authors = [
+    {name = "Rory Devitt", email = "rorytdevitt@gmail.com"},
+]
+scripts = {musync = "musync.main:app"}
 
 [dependency-groups]
 dev = [
