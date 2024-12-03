@@ -12,7 +12,7 @@ from musync.sync import (
     sync_users_playlists,
 )
 
-from typing import TypeVar
+from typing import Type
 
 dotenv.load_dotenv()
 
@@ -25,8 +25,7 @@ class Provider(str, Enum):
 
 
 def get_provider_client(provider: Provider, read_only: bool) -> ProviderClient:
-    ProviderClientType = TypeVar("ProviderClientType", bound=ProviderClient)
-    clients: dict[Provider, ProviderClientType] = {
+    clients: dict[Provider, Type[ProviderClient]] = {
         Provider.spotify: SpotifyClient,
         Provider.youtube: YoutubeClient,
     }
