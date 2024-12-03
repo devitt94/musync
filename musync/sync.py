@@ -59,7 +59,7 @@ def sync_users_playlists(
     destination_client: ProviderClient,
 ) -> list[Playlist]:
     logger.info(
-        f"Fetching user playlists from {source_client.provider_name} to sync to {destination_client.provider_name}"
+        f"Fetching user's playlists from {source_client.provider_name} to sync to {destination_client.provider_name}"
     )
 
     playlists_to_sync = [
@@ -77,11 +77,17 @@ def sync_followed_playlists(
     source_client: ProviderClient,
     destination_client: ProviderClient,
 ) -> list[Playlist]:
+    logger.info(
+        f"Fetching user's followed playlists from {source_client.provider_name} to sync to {destination_client.provider_name}"
+    )
+
     playlists_to_sync = [
         playlist
         for playlist in source_client.get_followed_playlists()
         if not playlist.name.startswith(PLAYLIST_PREFIX)
     ]
+
+    logger.info(f"Found {len(playlists_to_sync)} playlists to sync")
 
     return sync_playlists(source_client, destination_client, playlists_to_sync)
 
@@ -101,7 +107,7 @@ def sync_followed_artists(
             )
             continue
 
-        logger.info(
+        logger.debug(
             f"Syncing artist '{artist.name}' from {source_client.provider_name} to {destination_client.provider_name}"
         )
         destination_client.follow_artist(destination_artist)

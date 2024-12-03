@@ -76,7 +76,7 @@ def multisync(
     read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
 ) -> None:
     logger.debug(
-        f"Running multisync for froviders: {providers} ({user_playlists=}, {followed_playlists=}, {read_only=})"
+        f"Running multisync for providers: {providers} ({user_playlists=}, {followed_playlists=}, {read_only=})"
     )
     clients = [get_provider_client(provider, read_only) for provider in providers]
 
