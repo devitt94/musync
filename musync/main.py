@@ -4,20 +4,15 @@ import dotenv
 from loguru import logger
 import typer
 
-from musync.models.playlist import Playlist
 from musync.providers import SpotifyClient, YoutubeClient
 from musync.providers.base import ProviderClient
+from musync.sync import sync_followed_playlists, sync_users_playlists
 
 from typing import TypeVar
 
 dotenv.load_dotenv()
 
 app = typer.Typer()
-
-PLAYLIST_PREFIX = "[MUSYNC]"
-
-
-ProviderClientType = TypeVar("ProviderClientType", bound=ProviderClient)
 
 
 class Provider(str, Enum):
@@ -26,6 +21,7 @@ class Provider(str, Enum):
 
 
 def get_provider_client(provider: Provider, read_only: bool) -> ProviderClient:
+    ProviderClientType = TypeVar("ProviderClientType", bound=ProviderClient)
     clients: dict[Provider, ProviderClientType] = {
         Provider.spotify: SpotifyClient,
         Provider.youtube: YoutubeClient,
@@ -37,113 +33,49 @@ def get_provider_client(provider: Provider, read_only: bool) -> ProviderClient:
         raise ValueError(f"Invalid provider: {provider}")
 
 
-def sync_playlists(
-    source_client: ProviderClient,
-    destination_client: ProviderClient,
-    playlists: list[Playlist],
-) -> list[Playlist]:
-    results: list[Playlist] = []
-
-    for playlist in playlists:
-        logger.info(
-            f"Syncing playlist: {playlist.name} from {source_client.provider_name} to {destination_client.provider_name}"
-        )
-
-        playlist_to_create_name = (
-            f"{PLAYLIST_PREFIX}[{source_client.provider_name}] {playlist.name}"
-        )
-
-        if destination_client.user_playlist_exists(playlist_to_create_name):
-            logger.info(
-                f"{destination_client.provider_name} playlist {playlist_to_create_name} already exists"
-            )
-            continue
-
-        yt_songs = []
-        for song in playlist.songs:
-            yt_song = destination_client.find_song(song)
-            if yt_song:
-                yt_songs.append(yt_song)
-                logger.debug(
-                    f"Found {song.title} by {song.artist} on {destination_client.provider_name}"
-                )
-            else:
-                logger.warning(
-                    f"Could not find {song.title} by {song.artist} on {destination_client.provider_name}"
-                )
-
-        yt_playlist = destination_client.create_playlist(
-            playlist_to_create_name, yt_songs
-        )
-
-        results.append(yt_playlist)
-
-        logger.info(
-            f"Created {destination_client.provider_name} playlist: {yt_playlist.name} with {len(yt_playlist.songs)} songs"
-        )
-
-    return results
-
-
-def sync_users_playlists(
-    source_client: ProviderClient,
-    destination_client: ProviderClient,
-) -> list[Playlist]:
-    logger.info(
-        f"Fetching user playlists from {source_client.provider_name} to sync to {destination_client.provider_name}"
-    )
-
-    playlists_to_sync = [
-        playlist
-        for playlist in source_client.get_user_playlists()
-        if not playlist.name.startswith(PLAYLIST_PREFIX)
-    ]
-
-    logger.info(f"Found {len(playlists_to_sync)} playlists to sync")
-
-    return sync_playlists(source_client, destination_client, playlists_to_sync)
-
-
-def sync_followed_playlists(
-    source_client: ProviderClient,
-    destination_client: ProviderClient,
-) -> list[Playlist]:
-    playlists_to_sync = [
-        playlist
-        for playlist in source_client.get_followed_playlists()
-        if not playlist.name.startswith(PLAYLIST_PREFIX)
-    ]
-
-    return sync_playlists(source_client, destination_client, playlists_to_sync)
-
-
 @app.command()
 def unisync(
     source: Provider = typer.Argument(..., help="The source provider"),
     destination: Provider = typer.Argument(..., help="The destination provider"),
+    user_playlists: bool = typer.Option(True, help="Whether to sync user playlists"),
+    followed_playlists: bool = typer.Option(
+        True, help="Whether to sync followed playlists"
+    ),
     read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
 ) -> None:
     source_client = get_provider_client(source, read_only)
     destination_client = get_provider_client(destination, read_only)
 
-    sync_users_playlists(source_client, destination_client)
-    sync_followed_playlists(source_client, destination_client)
+    if user_playlists:
+        sync_users_playlists(source_client, destination_client)
+
+    if followed_playlists:
+        sync_followed_playlists(source_client, destination_client)
 
 
 @app.command()
 def multisync(
     providers: list[Provider] = typer.Argument(..., help="The providers to sync"),
+    user_playlists: bool = typer.Option(True, help="Whether to sync user playlists"),
+    followed_playlists: bool = typer.Option(
+        True, help="Whether to sync followed playlists"
+    ),
     read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
 ) -> None:
+    logger.debug(
+        f"Running multisync for froviders: {providers} ({user_playlists=}, {followed_playlists=}, {read_only=})"
+    )
     clients = [get_provider_client(provider, read_only) for provider in providers]
 
     for source_client, destination_client in itertools.permutations(clients, 2):
         logger.info(
             f"Syncing {source_client.provider_name} to {destination_client.provider_name}"
         )
+        if user_playlists:
+            sync_users_playlists(source_client, destination_client)
 
-        sync_users_playlists(source_client, destination_client)
-        sync_followed_playlists(source_client, destination_client)
+        if followed_playlists:
+            sync_followed_playlists(source_client, destination_client)
 
 
 @app.command()
