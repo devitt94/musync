@@ -1,4 +1,5 @@
 from loguru import logger
+from musync.models.artist import Artist
 from musync.models.playlist import Playlist
 from musync.providers.base import ProviderClient
 
@@ -83,3 +84,27 @@ def sync_followed_playlists(
     ]
 
     return sync_playlists(source_client, destination_client, playlists_to_sync)
+
+
+def sync_followed_artists(
+    source_client: ProviderClient,
+    destination_client: ProviderClient,
+) -> list[Artist]:
+    source_artists = source_client.get_followed_artists()
+    synced_artists = []
+
+    for artist in source_artists:
+        destination_artist = destination_client.find_artist(artist)
+        if not destination_artist:
+            logger.warning(
+                f"Could not find match for artist '{artist.name}' on {destination_client.provider_name}"
+            )
+            continue
+
+        logger.info(
+            f"Syncing artist '{artist.name}' from {source_client.provider_name} to {destination_client.provider_name}"
+        )
+        destination_client.follow_artist(destination_artist)
+        synced_artists.append(destination_artist)
+
+    return synced_artists

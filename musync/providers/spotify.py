@@ -1,7 +1,9 @@
 import functools
 import itertools
 import os
+
 from musync.models import Song, Playlist
+from musync.models.artist import Artist
 from musync.providers.base import ProviderClient
 
 from spotipy import Spotify, SpotifyOAuth  # type: ignore
@@ -17,6 +19,7 @@ SCOPES = [
     "playlist-modify-public",
     "playlist-modify-private",
     "playlist-read-collaborative",
+    "user-follow-modify",
 ]
 
 
@@ -79,6 +82,31 @@ class SpotifyClient(ProviderClient):
                 artist=track["artists"][0]["name"],
                 album=track["album"]["name"],
             )
+
+    def find_artist(self, artist: Artist) -> Artist | None:
+        results = self._client.search(q=artist.name, type="artist", limit=10)
+
+        for found_artist in results["artists"]["items"]:
+            if found_artist["name"].lower() == artist.name.lower():
+                return Artist(
+                    id=found_artist["id"],
+                    name=found_artist["name"],
+                )
+
+        return None
+
+    def get_followed_artists(self) -> list[Artist]:
+        results = self._client.current_user_followed_artists()["artists"]
+        artists = results["items"]
+        while results["next"]:
+            results = self._client.next(results)["artists"]
+            artists.extend(results["items"])
+
+        return [Artist(id=artist["id"], name=artist["name"]) for artist in artists]
+
+    def follow_artist(self, artist: Artist) -> None:
+        if not self.read_only:
+            self._client.user_follow_artists([artist.id])
 
     def get_songs_from_playlist(self, playlist_id: str) -> list[Song]:
         results = self._client.playlist_tracks(playlist_id)

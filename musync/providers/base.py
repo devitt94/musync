@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from musync.models import Song, Playlist
+from musync.models.artist import Artist
 
 
 class ProviderClient(ABC):
@@ -16,6 +17,18 @@ class ProviderClient(ABC):
 
     @abstractmethod
     def find_song(self, song: Song) -> Song | None:
+        pass
+
+    @abstractmethod
+    def find_artist(self, artist: Artist) -> Artist | None:
+        pass
+
+    @abstractmethod
+    def get_followed_artists(self) -> list[Artist]:
+        pass
+
+    @abstractmethod
+    def follow_artist(self, artist: Artist) -> None:
         pass
 
     @abstractmethod

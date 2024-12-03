@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from musync.models import Playlist, Song
+from musync.models.artist import Artist
 
 from .base import ProviderClient
 
@@ -63,6 +64,34 @@ class YoutubeClient(ProviderClient):
             artist=first_track_found["artists"][0]["name"],
             album=album,
         )
+
+    def find_artist(self, artist: Artist) -> Artist | None:
+        search_results = self._client.search(
+            query=artist.name, filter="artists", limit=10
+        )
+
+        for found_artist in search_results:
+            if found_artist["artist"].lower() == artist.name.lower():
+                return Artist(
+                    id=found_artist["browseId"],
+                    name=found_artist["artist"],
+                )
+
+        return None
+
+    def get_followed_artists(self) -> list[Artist]:
+        followed_artists = self._client.get_library_subscriptions()
+        return [
+            Artist(
+                id=artist["browseId"],
+                name=artist["artist"],
+            )
+            for artist in followed_artists
+        ]
+
+    def follow_artist(self, artist: Artist) -> None:
+        if not self.read_only:
+            self._client.subscribe_artists([artist.id])
 
     def __is_self_authored_playlist(self, playlist: dict) -> bool:
         authors = playlist.get("author")

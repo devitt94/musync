@@ -6,7 +6,11 @@ import typer
 
 from musync.providers import SpotifyClient, YoutubeClient
 from musync.providers.base import ProviderClient
-from musync.sync import sync_followed_playlists, sync_users_playlists
+from musync.sync import (
+    sync_followed_artists,
+    sync_followed_playlists,
+    sync_users_playlists,
+)
 
 from typing import TypeVar
 
@@ -41,6 +45,9 @@ def unisync(
     followed_playlists: bool = typer.Option(
         True, help="Whether to sync followed playlists"
     ),
+    followed_artists: bool = typer.Option(
+        True, help="Whether to sync followed artists"
+    ),
     read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
 ) -> None:
     source_client = get_provider_client(source, read_only)
@@ -52,6 +59,9 @@ def unisync(
     if followed_playlists:
         sync_followed_playlists(source_client, destination_client)
 
+    if followed_artists:
+        sync_followed_artists(source_client, destination_client)
+
 
 @app.command()
 def multisync(
@@ -59,6 +69,9 @@ def multisync(
     user_playlists: bool = typer.Option(True, help="Whether to sync user playlists"),
     followed_playlists: bool = typer.Option(
         True, help="Whether to sync followed playlists"
+    ),
+    followed_artists: bool = typer.Option(
+        True, help="Whether to sync followed artists"
     ),
     read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
 ) -> None:
@@ -76,6 +89,9 @@ def multisync(
 
         if followed_playlists:
             sync_followed_playlists(source_client, destination_client)
+
+        if followed_artists:
+            sync_followed_artists(source_client, destination_client)
 
 
 @app.command()
