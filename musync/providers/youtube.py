@@ -107,7 +107,7 @@ class YoutubeClient(ProviderClient):
             def filter_fn(x):
                 return not self.__is_self_authored_playlist(x)
 
-        playlists = self._client.get_library_playlists()
+        playlists = self._client.get_library_playlists(limit=None)
 
         filtered_playlists = filter(filter_fn, playlists)
 
@@ -152,7 +152,7 @@ class YoutubeClient(ProviderClient):
     def user_playlist_exists(self, name: str) -> bool:
         return any(
             playlist["title"] == name
-            for playlist in self._client.get_library_playlists()
+            for playlist in self._client.get_library_playlists(limit=None)
         )
 
     def get_followed_playlists(self) -> list[Playlist]:
@@ -161,3 +161,30 @@ class YoutubeClient(ProviderClient):
     def delete_playlist(self, playlist: Playlist) -> None:
         if not self.read_only:
             self._client.delete_playlist(playlist.id)
+
+    def get_playlist_by_name(self, name: str) -> Playlist | None:
+        for playlist in self._client.get_library_playlists(limit=None):
+            if playlist["title"] == name:
+                tracks = self._client.get_playlist(playlist["playlistId"])["tracks"]
+                return Playlist(
+                    id=playlist["playlistId"],
+                    name=playlist["title"],
+                    songs=[
+                        Song(
+                            id=track["videoId"],
+                            title=track["title"],
+                            artist=track["artists"][0]["name"],
+                            album=None,
+                        )
+                        for track in tracks
+                    ],
+                )
+
+        return None
+
+    def add_songs_to_playlist(self, playlist: Playlist, songs: list[Song]) -> Playlist:
+        if not self.read_only:
+            self._client.add_playlist_items(playlist.id, [song.id for song in songs])
+
+        playlist.songs.extend(songs)
+        return playlist

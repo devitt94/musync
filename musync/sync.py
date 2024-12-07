@@ -24,31 +24,63 @@ def sync_playlists(
 
         playlist_to_create_name = f"{playlist.name} {PLAYLIST_SUFFIX}"
 
-        if destination_client.user_playlist_exists(playlist_to_create_name):
+        existing_playlist = destination_client.get_playlist_by_name(
+            playlist_to_create_name
+        )
+        if existing_playlist:
             logger.info(
                 f"{destination_client.provider_name} playlist {playlist_to_create_name} already exists"
             )
-            continue
 
-        destination_songs = []
+            songs_already_added = {
+                (song.title, song.artist) for song in existing_playlist.songs
+            }
+        else:
+            songs_already_added = set()
+
+        songs_to_add = []
         for song in playlist.songs:
+            if (song.title, song.artist) in songs_already_added:
+                continue
+
             destination_song = destination_client.find_song(song)
-            if destination_song:
-                destination_songs.append(destination_song)
-            else:
+            if not destination_song:
                 logger.warning(
                     f"Could not find {song.title} by {song.artist} on {destination_client.provider_name}"
                 )
+                continue
 
-        yt_playlist = destination_client.create_playlist(
-            playlist_to_create_name, destination_songs
-        )
+            if (destination_song.title, destination_song.artist) in songs_already_added:
+                continue
 
-        results.append(yt_playlist)
+            logger.debug(f"Adding song: {destination_song}")
+            songs_to_add.append(destination_song)
 
-        logger.info(
-            f"Created {destination_client.provider_name} playlist: {yt_playlist.name} with {len(yt_playlist.songs)} songs"
-        )
+        if existing_playlist:
+            if songs_to_add:
+                logger.info(
+                    f"Adding {len(songs_to_add)} songs to {destination_client.provider_name} playlist: {playlist_to_create_name}"
+                )
+                destination_playlist = destination_client.add_songs_to_playlist(
+                    existing_playlist, songs_to_add
+                )
+                results.append(destination_playlist)
+                logger.debug(f"Playlist updated: {destination_playlist}")
+            else:
+                logger.info(
+                    f"No new songs to add to {destination_client.provider_name} playlist: {existing_playlist}"
+                )
+                destination_playlist = existing_playlist
+        else:
+            logger.info(
+                f"Creating {destination_client.provider_name} playlist: {playlist_to_create_name} with {len(songs_to_add)} songs"
+            )
+
+            destination_playlist = destination_client.create_playlist(
+                playlist_to_create_name, songs_to_add
+            )
+
+        results.append(destination_playlist)
 
     return results
 

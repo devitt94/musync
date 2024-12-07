@@ -192,3 +192,29 @@ class SpotifyClient(ProviderClient):
     def delete_playlist(self, playlist: Playlist) -> None:
         if not self.read_only:
             self._client.current_user_unfollow_playlist(playlist.id)
+
+    def get_playlist_by_name(self, name: str) -> Playlist | None:
+        playlists = self._client.current_user_playlists()["items"]
+        for playlist in playlists:
+            if playlist is not None and playlist["name"] == name:
+                return Playlist(
+                    id=playlist["id"],
+                    name=playlist["name"],
+                    songs=self.get_songs_from_playlist(playlist["id"]),
+                )
+
+        return None
+
+    def add_songs_to_playlist(self, playlist: Playlist, songs: list[Song]) -> Playlist:
+        if not self.read_only:
+            for batch in itertools.batched(songs, 100):
+                self._client.playlist_add_items(
+                    playlist_id=playlist.id,
+                    items=[song.id for song in batch],
+                )
+
+        return Playlist(
+            id=playlist.id,
+            name=playlist.name,
+            songs=playlist.songs + songs,
+        )

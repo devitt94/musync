@@ -50,3 +50,11 @@ class ProviderClient(ABC):
     @abstractmethod
     def delete_playlist(self, playlist: Playlist) -> None:
         pass
+
+    @abstractmethod
+    def get_playlist_by_name(self, name: str) -> Playlist | None:
+        pass
+
+    @abstractmethod
+    def add_songs_to_playlist(self, playlist: Playlist, songs: list[Song]) -> Playlist:
+        pass
