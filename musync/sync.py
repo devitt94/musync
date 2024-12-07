@@ -30,21 +30,18 @@ def sync_playlists(
             )
             continue
 
-        yt_songs = []
+        destination_songs = []
         for song in playlist.songs:
-            yt_song = destination_client.find_song(song)
-            if yt_song:
-                yt_songs.append(yt_song)
-                logger.debug(
-                    f"Found {song.title} by {song.artist} on {destination_client.provider_name}"
-                )
+            destination_song = destination_client.find_song(song)
+            if destination_song:
+                destination_songs.append(destination_song)
             else:
                 logger.warning(
                     f"Could not find {song.title} by {song.artist} on {destination_client.provider_name}"
                 )
 
         yt_playlist = destination_client.create_playlist(
-            playlist_to_create_name, yt_songs
+            playlist_to_create_name, destination_songs
         )
 
         results.append(yt_playlist)
@@ -109,7 +106,7 @@ def sync_followed_artists(
             )
             continue
 
-        logger.debug(
+        logger.info(
             f"Syncing artist '{artist.name}' from {source_client.provider_name} to {destination_client.provider_name}"
         )
         destination_client.follow_artist(destination_artist)
