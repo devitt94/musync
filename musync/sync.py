@@ -3,11 +3,11 @@ from musync.models.artist import Artist
 from musync.models.playlist import Playlist
 from musync.providers.base import ProviderClient
 
-PLAYLIST_PREFIX = "[MUSYNC]"
+PLAYLIST_SUFFIX = "[MUSYNC]"
 
 
 def is_musync_playlist(playlist: Playlist) -> bool:
-    return playlist.name.startswith(PLAYLIST_PREFIX)
+    return playlist.name.startswith(PLAYLIST_SUFFIX)
 
 
 def sync_playlists(
@@ -22,9 +22,7 @@ def sync_playlists(
             f"Syncing playlist: {playlist.name} from {source_client.provider_name} to {destination_client.provider_name}"
         )
 
-        playlist_to_create_name = (
-            f"{PLAYLIST_PREFIX}[{source_client.provider_name}] {playlist.name}"
-        )
+        playlist_to_create_name = f"{playlist.name} {PLAYLIST_SUFFIX}"
 
         if destination_client.user_playlist_exists(playlist_to_create_name):
             logger.info(
@@ -69,7 +67,7 @@ def sync_users_playlists(
     playlists_to_sync = [
         playlist
         for playlist in source_client.get_user_playlists()
-        if not playlist.name.startswith(PLAYLIST_PREFIX)
+        if not playlist.name.endswith(PLAYLIST_SUFFIX)
     ]
 
     logger.info(f"Found {len(playlists_to_sync)} playlists to sync")
@@ -88,7 +86,7 @@ def sync_followed_playlists(
     playlists_to_sync = [
         playlist
         for playlist in source_client.get_followed_playlists()
-        if not playlist.name.startswith(PLAYLIST_PREFIX)
+        if not playlist.name.startswith(PLAYLIST_SUFFIX)
     ]
 
     logger.info(f"Found {len(playlists_to_sync)} playlists to sync")
