@@ -157,3 +157,7 @@ class YoutubeClient(ProviderClient):
 
     def get_followed_playlists(self) -> list[Playlist]:
         return self.__get_playlists(is_user_authored=False)
+
+    def delete_playlist(self, playlist: Playlist) -> None:
+        if not self.read_only:
+            self._client.delete_playlist(playlist.id)

@@ -6,6 +6,10 @@ from musync.providers.base import ProviderClient
 PLAYLIST_PREFIX = "[MUSYNC]"
 
 
+def is_musync_playlist(playlist: Playlist) -> bool:
+    return playlist.name.startswith(PLAYLIST_PREFIX)
+
+
 def sync_playlists(
     source_client: ProviderClient,
     destination_client: ProviderClient,
@@ -114,3 +118,16 @@ def sync_followed_artists(
         synced_artists.append(destination_artist)
 
     return synced_artists
+
+
+def delete_synced_playlists(client: ProviderClient) -> None:
+    logger.info(f"Fetching playlists from {client.provider_name} ")
+    playlists = client.get_user_playlists()
+    playlists = [playlist for playlist in playlists if is_musync_playlist(playlist)]
+    logger.info(f"Found {len(playlists)} playlists to delete")
+
+    for playlist in playlists:
+        logger.info(f"Deleting playlist '{playlist.name}' from {client.provider_name}")
+        client.delete_playlist(playlist)
+
+    logger.info(f"Deleted {len(playlists)} playlists")

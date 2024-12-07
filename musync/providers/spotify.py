@@ -117,7 +117,7 @@ class SpotifyClient(ProviderClient):
 
         return [
             Song(
-                id=track["track"]["id"],
+                id=track["track"]["id"] or track["track"]["uri"],
                 title=track["track"]["name"],
                 artist=track["track"]["artists"][0]["name"],
                 album=track["track"]["album"]["name"],
@@ -130,18 +130,19 @@ class SpotifyClient(ProviderClient):
 
     def __get_playlists(self, is_user_authored: bool) -> list[Playlist]:
         if is_user_authored:
-            filter_fn = self.__is_self_authored_playlist
+
+            def filter_fn(x):
+                return x is not None and self.__is_self_authored_playlist(x)
         else:
 
             def filter_fn(x):
-                return not self.__is_self_authored_playlist(x)
+                return x is not None and not self.__is_self_authored_playlist(x)
 
         results = self._client.current_user_playlists()
 
         playlists = results["items"]
         while results["next"]:
             results = self._client.next(results)
-
             playlists.extend(results["items"])
 
         filtered_playlists = filter(filter_fn, playlists)
@@ -187,3 +188,7 @@ class SpotifyClient(ProviderClient):
 
     def get_followed_playlists(self) -> list[Playlist]:
         return self.__get_playlists(is_user_authored=False)
+
+    def delete_playlist(self, playlist: Playlist) -> None:
+        if not self.read_only:
+            self._client.current_user_unfollow_playlist(playlist.id)

@@ -7,6 +7,7 @@ import typer
 from musync.providers import SpotifyClient, YoutubeClient
 from musync.providers.base import ProviderClient
 from musync.sync import (
+    delete_synced_playlists,
     sync_followed_artists,
     sync_followed_playlists,
     sync_users_playlists,
@@ -91,6 +92,17 @@ def multisync(
 
         if followed_artists:
             sync_followed_artists(source_client, destination_client)
+
+
+@app.command()
+def clear_playlists(
+    provider: Provider = typer.Argument(
+        ..., help="The provider to clear playlists from"
+    ),
+    read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
+) -> None:
+    client = get_provider_client(provider, read_only)
+    delete_synced_playlists(client)
 
 
 @app.command()

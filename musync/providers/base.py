@@ -46,3 +46,7 @@ class ProviderClient(ABC):
     @abstractmethod
     def get_followed_playlists(self) -> list[Playlist]:
         pass
+
+    @abstractmethod
+    def delete_playlist(self, playlist: Playlist) -> None:
+        pass
