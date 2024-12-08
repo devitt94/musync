@@ -106,8 +106,22 @@ def clear_playlists(
 
 
 @app.command()
-def hello():
-    logger.info("Musync is working!")
+def test_auth():
+    all_successful = True
+    for provider in Provider:
+        try:
+            client = get_provider_client(provider, read_only=True)
+            logger.info(
+                f"Successfully authenticated with {client.provider_name} as {client.username}"
+            )
+        except Exception:
+            logger.exception(f"Failed to authenticate with {provider}")
+            all_successful = False
+
+    if not all_successful:
+        raise typer.Exit(code=1)
+
+    logger.info("musync is ready to use!")
 
 
 if __name__ == "__main__":

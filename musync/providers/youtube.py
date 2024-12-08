@@ -42,6 +42,14 @@ class YoutubeClient(ProviderClient):
             "compactLinkRenderer"
         ]["navigationEndpoint"]["browseEndpoint"]["browseId"]
 
+    @functools.cached_property
+    def username(self) -> str:
+        endpoint = "account/account_menu"
+        response = self._client._send_request(endpoint, {})
+        return response["actions"][0]["openPopupAction"]["popup"][
+            "multiPageMenuRenderer"
+        ]["header"]["activeAccountHeaderRenderer"]["channelHandle"]["runs"][0]["text"]
+
     def find_song(self, song: Song) -> Song | None:
         search_results = self._client.search(
             query=f"{song.title} {song.artist}", filter="songs", limit=1

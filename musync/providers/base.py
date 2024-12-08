@@ -15,6 +15,16 @@ class ProviderClient(ABC):
     def provider_name(self) -> str:
         pass
 
+    @property
+    @abstractmethod
+    def user_id(self) -> str:
+        pass
+
+    @property
+    @abstractmethod
+    def username(self) -> str:
+        pass
+
     @abstractmethod
     def find_song(self, song: Song) -> Song | None:
         pass

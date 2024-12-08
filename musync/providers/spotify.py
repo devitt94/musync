@@ -67,6 +67,10 @@ class SpotifyClient(ProviderClient):
     def user_id(self) -> str:
         return self._client.me()["id"]
 
+    @property
+    def username(self) -> str:
+        return self._client.me()["id"]
+
     def find_song(self, song: Song) -> Song | None:
         results = self._client.search(
             q=f"{song.title} {song.artist}", type="track", limit=10
