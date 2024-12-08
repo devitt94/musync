@@ -17,6 +17,10 @@ authors = [
 ]
 scripts = {musync = "musync.main:app"}
 
+[project.license]
+name = "MIT"
+file = "LICENSE"
+
 [dependency-groups]
 dev = [
     "mypy>=1.13.0",
