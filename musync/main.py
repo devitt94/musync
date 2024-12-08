@@ -39,8 +39,8 @@ def get_provider_client(provider: Provider, read_only: bool) -> ProviderClient:
 
 @app.command()
 def unisync(
-    source: Provider = typer.Argument(..., help="The source provider"),
-    destination: Provider = typer.Argument(..., help="The destination provider"),
+    source: Provider = typer.Option(..., help="The source provider"),
+    destination: Provider = typer.Option(..., help="The destination provider"),
     user_playlists: bool = typer.Option(True, help="Whether to sync user playlists"),
     followed_playlists: bool = typer.Option(
         True, help="Whether to sync followed playlists"
@@ -48,10 +48,10 @@ def unisync(
     followed_artists: bool = typer.Option(
         True, help="Whether to sync followed artists"
     ),
-    read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
+    dry_run: bool = typer.Option(False, help="Whether to run in read-only mode"),
 ) -> None:
-    source_client = get_provider_client(source, read_only)
-    destination_client = get_provider_client(destination, read_only)
+    source_client = get_provider_client(source, read_only=dry_run)
+    destination_client = get_provider_client(destination, read_only=dry_run)
 
     if user_playlists:
         sync_users_playlists(source_client, destination_client)
@@ -73,12 +73,14 @@ def multisync(
     followed_artists: bool = typer.Option(
         True, help="Whether to sync followed artists"
     ),
-    read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
+    dry_run: bool = typer.Option(False, help="Whether to run in read-only mode"),
 ) -> None:
     logger.debug(
-        f"Running multisync for providers: {providers} ({user_playlists=}, {followed_playlists=}, {read_only=})"
+        f"Running multisync for providers: {providers} ({user_playlists=}, {followed_playlists=}, {dry_run=})"
     )
-    clients = [get_provider_client(provider, read_only) for provider in providers]
+    clients = [
+        get_provider_client(provider, read_only=dry_run) for provider in providers
+    ]
 
     for source_client, destination_client in itertools.permutations(clients, 2):
         logger.info(
@@ -99,9 +101,9 @@ def clear_playlists(
     provider: Provider = typer.Argument(
         ..., help="The provider to clear playlists from"
     ),
-    read_only: bool = typer.Option(False, help="Whether to run in read-only mode"),
+    dry_run: bool = typer.Option(False, help="Whether to run in read-only mode"),
 ) -> None:
-    client = get_provider_client(provider, read_only)
+    client = get_provider_client(provider, read_only=dry_run)
     delete_synced_playlists(client)
 
 
@@ -110,7 +112,7 @@ def test_auth():
     all_successful = True
     for provider in Provider:
         try:
-            client = get_provider_client(provider, read_only=True)
+            client: ProviderClient = get_provider_client(provider, read_only=True)
             logger.info(
                 f"Successfully authenticated with {client.provider_name} as {client.username}"
             )
