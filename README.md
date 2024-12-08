@@ -13,13 +13,13 @@ Considering moving from Spotify to YouTube Music (or vice versa), but afraid of 
 Using pip:
 
 ```bash
-pip install musync
+pip install pymusync
 ```
 
 Using pipx:
 
 ```bash
-pipx install musync
+pipx install pymusync
 ```
 
 You can verify the installation worked by running:

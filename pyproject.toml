@@ -1,5 +1,5 @@
 [project]
-name = "musync"
+name = "pymusync"
 version = "0.1.0"
 description = "A tool for syncing user data across music streaming services."
 readme = "README.md"
