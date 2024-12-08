@@ -1,7 +1,7 @@
 from enum import Enum
 import itertools
 import dotenv
-from loguru import logger
+from musync.logger import logger
 import typer
 
 from musync.providers import SpotifyClient, YoutubeClient

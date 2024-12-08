@@ -1,4 +1,4 @@
-from loguru import logger
+from musync.logger import logger
 from musync.models.artist import Artist
 from musync.models.playlist import Playlist
 from musync.providers.base import ProviderClient
